@@ -1,4 +1,4 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.126.1/build/three.module.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.135.0/build/three.module.js';
 import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.135.0/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.135.0/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'https://cdn.jsdelivr.net/npm/three@0.135.0/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -6,19 +6,28 @@ import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.135.0/examples/
 import { HorizontalBlurShader } from 'https://cdn.jsdelivr.net/npm/three@0.135.0/examples/jsm/shaders/HorizontalBlurShader.js';
 import { VerticalBlurShader } from 'https://cdn.jsdelivr.net/npm/three@0.135.0/examples/jsm/shaders/VerticalBlurShader.js';
 import { BrightnessContrastShader} from 'https://cdn.jsdelivr.net/npm/three@0.135.0/examples/jsm/shaders/BrightnessContrastShader.js';
-import { vertexShader, fragmentShader } from './shaderScales.js';
 
 let scene, camera, renderer, composer;
 let cube, spotLight, backLight, backLight2;
 let mouse = { x: 0, y: 0 };
-const radius = 3; // Define the radius for the orbit
-const lerpFactor = 0.07; // Adjust this factor to control the delay speed
 
-let targetCubePosition = { x: 0, y: 0 }; // Target positions for cube
-let currentCubePosition = { x: 0, y: 0 }; // Current positions for cube
+const radius = 3; // Define the radius for the light orbit
+const lerpFactor = 0.07; // Adjust this factor to control the lerping speed of light and cube
 
-let targetLightPosition = { x: 0, y: 0 }; // Target positions for spotlight
-let currentLightPosition = { x: 0, y: 0 }; // Current positions for spotlight
+const textureRepeatX = 10; // Number of texture repetitions along X axis
+const textureRepeatY = 10; // Number of texture repetitions along Y axis
+
+const spotHeight = .2; //yellow spotlight height
+
+const backLightPos = { x: -10, y: -3, z: 7 }
+const backLight2Pos = { x: 2, y: 2, z: 3 }
+
+
+let targetCubePosition = { x: 0, y: 0 };
+let currentCubePosition = { x: 0, y: 0 };
+
+let targetLightPosition = { x: 0, y: 0 };
+let currentLightPosition = { x: 10, y: 10 };
 
 // Load textures
 const textureLoader = new THREE.TextureLoader();
@@ -27,20 +36,17 @@ const roughness = textureLoader.load('scales/roughness.png');
 const normal = textureLoader.load('scales/normal.png');
 const displacement = textureLoader.load('scales/displacement.png');
 
-// Create the material with textures
+// Scale material
 const material = new THREE.MeshStandardMaterial({
 	map: albedo,
 	roughnessMap: roughness,
 	normalMap: normal,
 	displacementMap: displacement,
-	displacementScale: 0.1, // Adjust the scale of the displacement map
-
-	metalness: .3, // Set metalness to 1 to highlight reflections
-	clearcoat: 1.0, // Add clearcoat for additional highlights
-	clearcoatRoughness: 0.1 // Adjust clearcoat roughness
+	displacementScale: 0.1,
+	metalness: .3,
 });
 
-// Set texture wrapping and repeat
+// texture repeat and wrapping (is responsive !)
 albedo.wrapS = THREE.RepeatWrapping;
 albedo.wrapT = THREE.RepeatWrapping;
 roughness.wrapS = THREE.RepeatWrapping;
@@ -50,18 +56,14 @@ normal.wrapT = THREE.RepeatWrapping;
 displacement.wrapS = THREE.RepeatWrapping;
 displacement.wrapT = THREE.RepeatWrapping;
 
-const repeatX = 4; // Number of repetitions along X axis
-const repeatY = 4; // Number of repetitions along Y axis
-
-albedo.repeat.set(repeatX, repeatY);
-roughness.repeat.set(repeatX, repeatY);
-normal.repeat.set(repeatX, repeatY);
-displacement.repeat.set(repeatX, repeatY);
+albedo.repeat.set(textureRepeatX, textureRepeatY);
+roughness.repeat.set(textureRepeatX, textureRepeatY);
+normal.repeat.set(textureRepeatX, textureRepeatY);
+displacement.repeat.set(textureRepeatX, textureRepeatY);
 
 function init() {
-	// Scene setup
-	scene = new THREE.Scene();
 
+	scene = new THREE.Scene();
 	// Camera setup
 	camera = new THREE.PerspectiveCamera(
 		75, 
@@ -71,81 +73,84 @@ function init() {
 	);
 	camera.position.z = 2;
 
+
 	// Renderer setup
 	renderer = new THREE.WebGLRenderer({ antialias: true });
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	renderer.setPixelRatio(window.devicePixelRatio);
 	document.body.appendChild(renderer.domElement);
 
+	//better colors
 	renderer.toneMapping = THREE.CineonToneMapping;
 	renderer.toneMappingExposure = 0.5;
 	renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-	// Post-processing composer setup
-	const renderScene = new RenderPass(scene, camera);
+	// Post-processing composer 
+	// pipeline : (render -> bloom -> brightness and contrast -> blur)
 	composer = new EffectComposer(renderer);
-	composer.addPass(renderScene);
+
+	//scene
+	const renderScene = new RenderPass(scene, camera);
+		composer.addPass(renderScene);
+	//bloom (if pixel luminosity is higher than given value, saturates and glow)
 	const bloomPass = 
 		new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.7, 0.1);
-	composer.addPass(bloomPass);
-
+		composer.addPass(bloomPass);
+	//tweaks brightness and constrast
 	const brightnessContrastPass = new ShaderPass(BrightnessContrastShader);
-	brightnessContrastPass.uniforms['brightness'].value = .05; // Ajustez la luminosité (valeur entre -1 et 1)
-	brightnessContrastPass.uniforms['contrast'].value = .2;   // Ajustez le contraste (valeur entre -1 et 1)
-	composer.addPass(brightnessContrastPass);
-
-	// Ajouter le shader de flou horizontal
+		brightnessContrastPass.uniforms['brightness'].value = .05;
+		brightnessContrastPass.uniforms['contrast'].value = .2;
+		composer.addPass(brightnessContrastPass);
+	//horizontal and vertical blur (not gaussian, don't overdo). If not equal, looks terrible
 	const hblur = new ShaderPass(HorizontalBlurShader);
-	hblur.uniforms['h'].value = .5 / window.innerWidth;
-	composer.addPass(hblur);
-
-	// Ajouter le shader de flou vertical
+		hblur.uniforms['h'].value = .5 / window.innerWidth;
+		composer.addPass(hblur);
 	const vblur = new ShaderPass(VerticalBlurShader);
-	vblur.uniforms['v'].value = .5 / window.innerHeight;
-	composer.addPass(vblur);
+		vblur.uniforms['v'].value = .5 / window.innerHeight;
+		composer.addPass(vblur);
 
-	// Cube setup
+	//Cube
 	let geometry = new THREE.BoxGeometry(1, 1, 1);
 	cube = new THREE.Mesh(geometry, material);
 	scene.add(cube);
 
-	// Light setup
+	//Lights setup
 	backLight = new THREE.SpotLight(0x3a6ca7, 1);
-	backLight.position.set(-10, -3, 7);	
-	backLight.angle = 150 * (Math.PI / 180); // Adjust the angle of the spotlight
-	backLight.penumbra = 0.1; // Adjust the penumbra (edge softness)
-	backLight.decay = 10; // Adjust the decay (falloff of light intensity)
-	backLight.distance = 100; // Set the distance the light reaches
+	backLight.position.set(backLightPos.x, backLightPos.y, backLightPos.z);	
+	backLight.angle = 150 * (Math.PI / 180);
+	backLight.penumbra = 0.1;
+	backLight.decay = 10; 
+	backLight.distance = 100;
 	scene.add(backLight);
 	backLight.target = cube;
 
 	backLight2 = new THREE.PointLight(0x3a6ca7, 2);
-	backLight2.position.set(0, 0, 10);
+	backLight2.position.set(backLight2Pos.x, backLight2Pos.y, backLight2Pos.z);
 	scene.add(backLight2);
 	backLight2.target = cube;
 
-	spotLight = new THREE.SpotLight(0xE6991E, 10); // Yellow spotlight for localized illumination
-	spotLight.position.set(2, 2, .2);
-	spotLight.angle = 160 * (Math.PI / 180); // Adjust the angle of the spotlight
-	spotLight.penumbra = .1; // Adjust the penumbra (edge softness)
-	spotLight.decay = 10; // Adjust the decay (falloff of light intensity)
-	spotLight.distance = 10; // Set the distance the light reaches
+	spotLight = new THREE.SpotLight(0xE6991E, 10); //Bright yellow spot orbiting
+	spotLight.position.set(2, 2, spotHeight);
+	spotLight.angle = 150 * (Math.PI / 180);
+	spotLight.penumbra = .1;
+	spotLight.decay = 10;
+	spotLight.distance = 10; 
 	scene.add(spotLight);
 	spotLight.target = cube;
+
 
 	// Event listeners
 	window.addEventListener('resize', onWindowResize, false);
 	document.addEventListener('mousemove', onMouseMove, false);
 
-	// Start animation
+
 	animate();
-	updateSize();  // Initial size update
+	updateSize();  // Initial size
 }
 
 function updateSize() {
-	const scaleX = (window.innerWidth / 500) * 10;
-	const scaleY = (window.innerHeight / 500) * 10;
-	const scaleZ = (Math.min(window.innerWidth, window.innerHeight) / 500) * 10;
+	const scaleX = (window.innerWidth / 500) * textureRepeatX;
+	const scaleY = (window.innerHeight / 500) * textureRepeatY;
 
 	// Update cube size based on window size    
 	cube.scale.set(scaleX, scaleY, 1);
@@ -156,8 +161,8 @@ function updateSize() {
 	normal.repeat.set(scaleX, scaleY);
 	displacement.repeat.set(scaleX, scaleY);
 
-	backLight.position.set(window.innerWidth/500-10, window.innerHeight/500-3, 7);	
-	backLight2.position.set(window.innerWidth/500+2, window.innerHeight/500+2, 3);	
+	backLight.position.set(window.innerWidth/500 + backLightPos.x, window.innerHeight/500 + backLightPos.y, backLightPos.z);	
+	backLight2.position.set(window.innerWidth/500 + backLight2Pos.x, window.innerHeight/500 + backLight2Pos.y, backLight2Pos.z);	
 }
 
 function onWindowResize() {
@@ -165,7 +170,7 @@ function onWindowResize() {
 	camera.updateProjectionMatrix();
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	composer.setSize(window.innerWidth, window.innerHeight);
-	updateSize();  // Update cube size on window resize
+	updateSize();  // Update elements size on window resize
 }
 
 function onMouseMove(event) {
@@ -199,10 +204,10 @@ function animate() {
 
     spotLight.position.x = currentLightPosition.x;
     spotLight.position.y = currentLightPosition.y;
-    spotLight.position.z = 0.2; // Fixed height
-	// Render scene with composer
+    spotLight.position.z = spotHeight;
+	// Render scene with post-process
 	composer.render();
 }
 
-// Initialize the scene
+
 init();

@@ -2,92 +2,162 @@
 const lerpFactor1 = 0.01
 const lerpFactor2= 0.01
 
+const animSpeed= 10000;
 
-// Fonction utilitaire pour l'interpolation linéaire
+const rotateSpeed=2000;
+const animAmplitude=5;
+
+let isSpinning = false; // Flag for rotation
+
+
+
+//Lerp function
 function lerp(start, end, t) {
     return start * (1 - t) + end * t;
   }
 
-// Fonction utilitaire pour obtenir une valeur aléatoire dans une plage
+//Random function
 function getRandom(min, max) {
     return Math.random() * (min - max) + max;
 }
+//ease-in/out
+function easeInOutQuad(t, acceleration = 2, deceleration = 2) {
+  return t < 0.5 
+      ? Math.pow(2 * t, acceleration) / 2 
+      : 1 - Math.pow(-2 * t + 2, deceleration) / 2;
+}
 
-// Sélectionner tous les éléments avec la classe .cls-18
+
+//Select all logo components to animate
 const stroke = document.querySelectorAll('.cls-18');
 const cristal = document.querySelectorAll('.cristal');
+const logo = document.querySelector('.logo');
 
+
+// Initial mouse position
 let mouseX = window.innerWidth / 2;
 let mouseY = window.innerHeight / 2;
 
-// Mettre à jour les positions des éléments en fonction du mouvement de la souris
+//Strokes of hair animation following mouse
 function updateElements() {
     stroke.forEach(element => {
-        // Obtenir la position actuelle de l'élément
+        // Get current position of stroke
         const rect = element.getBoundingClientRect();
         const elementX = rect.left + rect.width / 2;
         const elementY = rect.top + rect.height / 2;
 
-        // Calculer la nouvelle position avec lerp en fonction de la position de la souris
+        // lerp it's position to target (mouse)
         const newX = lerp(elementX, mouseX, lerpFactor1);
         const newY = lerp(elementY, mouseY, lerpFactor1);
 
-        // Appliquer la transformation de translation
+        // Apply to element
         element.style.transform = `translate(${newX - elementX}px, ${newY - elementY}px)`;
     });
 
+    // executed at each frame
     requestAnimationFrame(updateElements);
 }
 
 function updateElementColor(element) {
-    // Appliquer la transition pour une transformation douce
-    element.style.transition = 'filter 0.3s, transform 0.3s'; // Ajoute une transition douce
+    //apply progressive transition
+    element.style.transition = 'filter 2s, transform 2s';
 
-    // Modifier la couleur pour la rendre plus claire ou sombre de manière aléatoire
+    //randomly brightens or saturates the color
     const brightness = getRandom(0.8, 1.2);
     const saturation = getRandom(1., 1.2);
     element.style.filter = `brightness(${brightness}) saturate(${saturation})`;
 
-    // Planifier le prochain changement de couleur avec une durée aléatoire
-    const randomDelay = getRandom(2000, 7000);
+    //random duration
+    const randomDelay = getRandom(3000, 8000);
 
-    // Remettre la couleur d'origine après un certain temps
+    //fade out timoe out
     setTimeout(() => {
         element.style.filter = 'brightness(1) saturate(1)';
-    }, randomDelay-20/100); // Correspond à la durée de la transition
+    }, randomDelay-20/100); //fades out until some time before changing again
+
     setTimeout(() => updateElementColor(element), randomDelay);
 }
-
 function startColorUpdates() {
+  //launch color edition for each cristal
     cristal.forEach(element => {
         updateElementColor(element);
     });
 }
 
+//tail movement
 var tail = document.getElementById('tail');
 var tailTo = document.getElementById('tailTo');
-  // Utiliser flubber pour créer une fonction d'interpolation entre les chemins
-  var interpolator = flubber.interpolate(tail.getAttribute('d'), tailTo.getAttribute('d'));
+  //flubber to interpolate ! (important : simple morph doesn't work cause illustrator)
+var interpolator = flubber.interpolate(tail.getAttribute('d'), tailTo.getAttribute('d'));
+anime({
+  targets: { d: 0 },
+  d: 1,
+  easing: 'easeInOutQuad',
+  duration: animSpeed,
+  loop: true,
+  direction: 'alternate',
+  update: function(anim) {
+    tail.setAttribute('d', interpolator(anim.animatables[0].target.d));
+  }
+});
 
-  anime({
-    targets: { d: 0 },
-    d: 1,
-    easing: 'easeInOutQuad',
-    duration: 10000,
-    loop: true,
-    direction: 'alternate',
-    update: function(anim) {
-      tail.setAttribute('d', interpolator(anim.animatables[0].target.d));
+//Bounce animation for the logo
+anime({
+  targets: '.logo',
+  translateY: [
+    { value: `-${animAmplitude}%`, duration: animSpeed },
+    { value: `+${animAmplitude}%`, duration: animSpeed }
+  ],
+  easing: 'easeInOutQuad',
+  loop: true, 
+  direction: 'alternate',
+});
+
+//spin animation for the logo
+function spinLogo() {
+
+    if (isSpinning) return; //mutex if already spinning
+    isSpinning = true;
+
+    let startTime = null;
+    const duration = 3000; //duration here
+
+    function animate(time) {
+      if (!startTime) startTime = time;
+      const elapsed = time - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      const easeT = easeInOutQuad(t, 10, 10);
+      const angle = lerp(0, 720, easeT);
+
+      logo.style.transform = `translateY(${getTranslateYValue()}px) rotate(${angle}deg)`;
+
+      if (t < 1) { //while not finished animate
+          requestAnimationFrame(animate);
+      }
+      else {
+        isSpinning = false; //free mutex
+      }
     }
-  });
+    requestAnimationFrame(animate);
+}
+
+
+//get the current bounce value ! otherwise when spinning might clip (override of the transform)
+function getTranslateYValue() {
+  const computedStyle = window.getComputedStyle(document.querySelector('.logo'));
+  const matrix = new WebKitCSSMatrix(computedStyle.transform);
+  return matrix.m42; // m42 is translateY in transform matrix
+}
+
+//Listeners
+document.addEventListener('mousemove', (event) => {
+  mouseX = event.clientX;
+  mouseY = event.clientY;
+});
+document.querySelector('.interact').addEventListener('mousedown', spinLogo);
   
-  // Écouter les mouvements de la souris
-  document.addEventListener('mousemove', (event) => {
-    mouseX = event.clientX;
-    mouseY = event.clientY;
-  });
   
-  // Démarrer l'animation
+
   updateElements();
   startColorUpdates();
   anime();
