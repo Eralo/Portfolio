@@ -4,8 +4,12 @@ const lerpFactor2= 0.01
 
 const animSpeed= 10000;
 
+
+const timerName = 2000;
+const nameSpeed = 5000;
+
 const rotateSpeed=2000;
-const animAmplitude=5;
+const animAmplitude=3;
 
 let isSpinning = false; // Flag for rotation
 
@@ -27,16 +31,76 @@ function easeInOutQuad(t, acceleration = 2, deceleration = 2) {
       : 1 - Math.pow(-2 * t + 2, deceleration) / 2;
 }
 
-
 //Select all logo components to animate
 const stroke = document.querySelectorAll('.cls-18');
 const cristal = document.querySelectorAll('.cristal');
 const logo = document.querySelector('.logo');
-
+const rect = document.getElementById('movingRect');
+const clipRect = document.getElementById('clip');
+const title1 = document.querySelector('.part1');
+const title2 = document.querySelector('.part2');
 
 // Initial mouse position
 let mouseX = window.innerWidth / 2;
 let mouseY = window.innerHeight / 2;
+
+  // Name animation
+  function moveRectangle() {
+    
+    var startX = rect.getBBox().x;
+    var startY = rect.getBBox().y;
+    var polygonWidth = rect.getBBox().width;
+    var polygonHeight = rect.getBBox().height; 
+    var nameBBox = title1.getBBox();
+    var nameBBox2 = title2.getBBox();
+    var nameElementWidth = nameBBox.width + nameBBox2.width;
+    var endX = (2*startX + nameElementWidth)*1.1;
+    var endY = startY;
+    var skew = 120;
+
+    var startTime;
+
+    function animate(time) {
+      if (!startTime) startTime = time;
+      var elapsed = time - startTime;
+      var t = Math.min(elapsed / nameSpeed, 1);
+      var easedT = easeInOutQuad(t, 1, 1.2);
+      var currentX = lerp(startX, endX, easedT);
+      var currentY = lerp(startY, endY, easedT);
+
+      //Update points
+      var points = [
+        { x: currentX, y: currentY },
+        { x: currentX + polygonWidth, y: currentY },
+        { x: currentX + polygonWidth + skew, y: currentY + polygonHeight },
+        { x: currentX + skew, y: currentY + polygonHeight }
+      ];
+      var pointsString = points.map(point => `${point.x},${point.y}`).join(' ');
+
+      rect.setAttribute('points', pointsString);
+      clipRect.setAttribute('points', pointsString);
+
+      if (t < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        // If rectangle has reached end
+        if (currentX >= endX) {
+          // reset after delay
+          setTimeout(function() {
+            rect.setAttribute('x', startX);
+            clipRect.setAttribute('x', startX);
+            startTime = null;
+            requestAnimationFrame(animate);
+          }, timerName); //timer for reset here
+        } else {
+          startTime = null;
+          requestAnimationFrame(animate);
+        }
+      }
+    }
+
+    requestAnimationFrame(animate);
+  }
 
 //Strokes of hair animation following mouse
 function updateElements() {
@@ -153,10 +217,13 @@ document.addEventListener('mousemove', (event) => {
   mouseX = event.clientX;
   mouseY = event.clientY;
 });
+window.addEventListener('resize', function() {
+  moveRectangle();
+});
 document.querySelector('.interact').addEventListener('mousedown', spinLogo);
-  
-  
 
-  updateElements();
-  startColorUpdates();
-  anime();
+
+updateElements();
+startColorUpdates();
+moveRectangle();
+anime();

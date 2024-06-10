@@ -14,8 +14,8 @@ let mouse = { x: 0, y: 0 };
 const radius = 3; // Define the radius for the light orbit
 const lerpFactor = 0.07; // Adjust this factor to control the lerping speed of light and cube
 
-const textureRepeatX = 10; // Number of texture repetitions along X axis
-const textureRepeatY = 10; // Number of texture repetitions along Y axis
+const textureRepeatX = 2; // Number of texture repetitions along X axis
+const textureRepeatY = 2; // Number of texture repetitions along Y axis
 
 const spotHeight = .2; //yellow spotlight height
 
@@ -29,8 +29,28 @@ let currentCubePosition = { x: 0, y: 0 };
 let targetLightPosition = { x: 0, y: 0 };
 let currentLightPosition = { x: 10, y: 10 };
 
+console.log("2");
+
+const loadingScreen = document.querySelector('.loading');
+//loading management
+const manager = new THREE.LoadingManager();
+manager.onStart = function (url, itemsLoaded, itemsTotal) {
+  console.log('Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
+};
+manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
+	console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+};
+manager.onLoad = function () {
+	console.log( 'Loading complete!');
+    loadingScreen.style.display = 'none';
+};
+manager.onError = function ( url ) {
+	console.log( 'There was an error loading ' + url );
+};
+
+
 // Load textures
-const textureLoader = new THREE.TextureLoader();
+const textureLoader = new THREE.TextureLoader(manager);
 const albedo = textureLoader.load('scales/albedo.png');
 const roughness = textureLoader.load('scales/roughness.png');
 const normal = textureLoader.load('scales/normal.png');
