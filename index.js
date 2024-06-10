@@ -129,13 +129,12 @@ function spinLogo() {
       const easeT = easeInOutQuad(t, 10, 10);
       const angle = lerp(0, 720, easeT);
 
+      logo.style.transformOrigin = "40% 45%"; // recenter rotation
       logo.style.transform = `translateY(${getTranslateYValue()}px) rotate(${angle}deg)`;
 
+      if (t > .9) isSpinning = false; //free mutex
       if (t < 1) { //while not finished animate
           requestAnimationFrame(animate);
-      }
-      else {
-        isSpinning = false; //free mutex
       }
     }
     requestAnimationFrame(animate);
