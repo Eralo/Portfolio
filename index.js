@@ -12,10 +12,9 @@ const rotateSpeed=2000;
 const animAmplitude=3;
 
 const textRadius = 400;
-const menuDegree = 90; 
-const menuBounceAmplitude = 5;
 
 let isSpinning = false; // Flag for rotation, do not touch
+let activeBounceElement = null; //Flag for menu bouncing
 
 
 //Lerp function
@@ -223,9 +222,16 @@ function getTranslateYValue() {
   return matrix.m42; // m42 is translateY in transform matrix
 }
 
-const degree = 60; // Angle from the right of the logo (in degrees)
-const amplitude = 2; // Bounce amplitude in percent of the page height
-const bounceAngle = 10; // Bounce angle in degrees
+
+const menuDegree = 60; // Angle from the right of the logo (in degrees)
+const menuBounceAmplitude = 3; // Bounce amplitude in percent of the page height
+const menuBounceAngle = 1; // Bounce angle in degrees
+const menuRadius = 400; // Fixed radius for orbit
+//const menuMoveDistanceX = 2; //floaty movement
+//const menuMoveDistanceY = 5; //floaty movement
+const menuMoveDistanceX = 0;
+const menuMoveDistanceY = 0;
+const menuMoveSpeed = 0.1; // Factor for lerp
 
 function getLogoCenter() {
   const rect = logo.getBoundingClientRect();
@@ -241,7 +247,18 @@ function moveTexts() {
   menuElem.forEach((text) => {
       text.style.left = `${centerX - text.offsetWidth / 2}px`;
       text.style.top = `${centerY - text.offsetHeight / 2}px`;
+      text.dataset.currentX = centerX - text.offsetWidth / 2;
+      text.dataset.currentY = centerY - text.offsetHeight / 2;
   });
+}
+
+// Function to generate random offset
+function getRandomOffset(range) {
+  return (Math.random() - 0.5) * range;
+}
+
+function lerp(start, end, t) {
+  return start + (end - start) * t;
 }
 
 function rotateTexts() {
@@ -250,25 +267,43 @@ function rotateTexts() {
   function rotate() {
       angle += 0.02;
       const { centerX, centerY } = getLogoCenter();
-      const radius = 200; // Fixed radius for orbit
-      const bounceAmplitude = window.innerHeight * (amplitude / 100); // Bounce amplitude in pixels
+      const bounceAmplitude = window.innerHeight * (menuBounceAmplitude / 100); // Bounce amplitude in pixels
+      const radianDegree = menuDegree * (Math.PI / 180); // Convert degree to radians
 
       menuElem.forEach((text, index) => {
-          const initialAngle = (index * (2 * Math.PI / menuElem.length)); // Distribute evenly
-          const theta = initialAngle + Math.sin(angle) * (bounceAngle * (Math.PI / 180)); // Add bounce effect
-          const bounce = Math.sin(angle * 5) * bounceAmplitude; // Bounce effect
-          const x = centerX + (radius + bounce) * Math.cos(theta) - text.offsetWidth / 2;
-          const y = centerY + (radius + bounce) * Math.sin(theta) - text.offsetHeight / 2;
-          text.style.left = `${x}px`;
-          text.style.top = `${y}px`;
+          const fraction = (index / (menuElem.length - 1)) - 0.5; // Distribute from -0.5 to 0.5
+          const initialAngle = fraction * radianDegree; // Calculate initial angle based on degree
+          const bounceFactor = (activeBounceElement === text) ? Math.abs(Math.sin(angle * 5)) : 1;
+          const theta = initialAngle + Math.sin(angle) * (menuBounceAngle * (Math.PI / 180)); // Add bounce effect
+          const bounce = bounceFactor * bounceAmplitude; // Bounce effect
+
+          // Generate random offsets
+          const randomOffsetX = getRandomOffset(menuMoveDistanceX); // Adjust range as needed
+          const randomOffsetY = getRandomOffset(menuMoveDistanceY); // Adjust range as needed
+
+          // Calculate target positions with random offsets
+          const targetX = centerX + (menuRadius + bounce) * Math.cos(theta) - text.offsetWidth / 2 + randomOffsetX;
+          const targetY = centerY + (menuRadius + bounce) * Math.sin(theta) - text.offsetHeight / 2 + randomOffsetY;
+
+          // Lerp to the target positions
+          const currentX = parseFloat(text.dataset.currentX);
+          const currentY = parseFloat(text.dataset.currentY);
+          const newX = lerp(currentX, targetX, menuMoveSpeed);
+          const newY = lerp(currentY, targetY, menuMoveSpeed);
+
+          // Update element position and dataset
+          text.style.left = `${newX}px`;
+          text.style.top = `${newY}px`;
+          text.dataset.currentX = newX;
+          text.dataset.currentY = newY;
+
           text.style.transform = `rotate(${theta}rad)`;
       });
-
       requestAnimationFrame(rotate);
   }
-
   requestAnimationFrame(rotate);
 }
+
 
 //Listeners
 document.addEventListener('mousemove', (event) => {
@@ -280,6 +315,16 @@ window.addEventListener('resize', function() {
   moveTexts();
 });
 document.querySelector('.interact').addEventListener('mousedown', spinLogo);
+
+menuElem.forEach((text) => {
+  text.addEventListener('mouseenter', () => {
+      activeBounceElement = text;
+  });
+
+  text.addEventListener('mouseleave', () => {
+      activeBounceElement = null;
+  });
+});
 
 
 updateElements();

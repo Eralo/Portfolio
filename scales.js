@@ -20,6 +20,9 @@ const textureRepeatY = 2; // Number of texture repetitions along Y axis
 
 const spotHeight = .2; //yellow spotlight height
 
+const cubemovementX = 0.1;
+const cubemovementY = 0.05;
+
 const backLightPos = { x: -10, y: -3, z: 7 }
 const backLight2Pos = { x: 2, y: 2, z: 3 }
 
@@ -205,8 +208,8 @@ function onMouseMove(event) {
 	mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 
 	// Update target positions based on mouse movement
-	targetCubePosition.x = mouse.x * 0.2;
-	targetCubePosition.y = mouse.y * 0.1;
+	targetCubePosition.x = mouse.x * cubemovementX;
+	targetCubePosition.y = mouse.y * cubemovementX;
 
     // Calculate the angle for the orbit based on mouse.x and mouse.y
     const angleX = Math.atan2(-targetCubePosition.y, -targetCubePosition.x);

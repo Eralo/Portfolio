@@ -43,7 +43,7 @@ body {
 
 .logo {  /* animated logo */
     position: relative; 
-    top: 15%;
+    top: 0%;
     left:0%;
     width: 70%;
     height: 70%;
@@ -90,4 +90,9 @@ body {
     position: absolute;
     transform-origin: center center;
     white-space: nowrap;
+    z-index: 50;
+    height: 10%;
+    font-family: "Montserrat", sans-serif;
+    font-size: 150%;
+    cursor: pointer;
 }
