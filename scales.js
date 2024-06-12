@@ -6,6 +6,7 @@ import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.135.0/examples/
 import { HorizontalBlurShader } from 'https://cdn.jsdelivr.net/npm/three@0.135.0/examples/jsm/shaders/HorizontalBlurShader.js';
 import { VerticalBlurShader } from 'https://cdn.jsdelivr.net/npm/three@0.135.0/examples/jsm/shaders/VerticalBlurShader.js';
 import { BrightnessContrastShader} from 'https://cdn.jsdelivr.net/npm/three@0.135.0/examples/jsm/shaders/BrightnessContrastShader.js';
+import YellowGlitterShader from './shaderScales.js';
 
 let scene, camera, renderer, composer;
 let cube, spotLight, backLight, backLight2;
@@ -129,6 +130,11 @@ function init() {
 		vblur.uniforms['v'].value = .5 / window.innerHeight;
 		composer.addPass(vblur);
 
+	// Yellow glitter pass with parameter
+	//const yellowGlitterPass = new ShaderPass(YellowGlitterShader);
+		//yellowGlitterPass.uniforms['resolution'].value = new THREE.Vector2(window.innerWidth, window.innerHeight);
+		//composer.addPass(yellowGlitterPass);
+
 	//Cube
 	let geometry = new THREE.BoxGeometry(1, 1, 1);
 	cube = new THREE.Mesh(geometry, material);
@@ -225,6 +231,9 @@ function animate() {
     spotLight.position.x = currentLightPosition.x;
     spotLight.position.y = currentLightPosition.y;
     spotLight.position.z = spotHeight;
+
+	YellowGlitterShader.updateTime(0.05); // Mettre à jour le temps pour l'effet de paillettes
+
 	// Render scene with post-process
 	composer.render();
 }

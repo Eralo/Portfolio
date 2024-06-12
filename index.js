@@ -11,8 +11,11 @@ const nameSpeed = 5000;
 const rotateSpeed=2000;
 const animAmplitude=3;
 
-let isSpinning = false; // Flag for rotation
+const textRadius = 400;
+const menuDegree = 90; 
+const menuBounceAmplitude = 5;
 
+let isSpinning = false; // Flag for rotation, do not touch
 
 
 //Lerp function
@@ -39,6 +42,7 @@ const rect = document.getElementById('movingRect');
 const clipRect = document.getElementById('clip');
 const title1 = document.querySelector('.part1');
 const title2 = document.querySelector('.part2');
+const menuElem = document.querySelectorAll('.menu');
 
 // Initial mouse position
 let mouseX = window.innerWidth / 2;
@@ -54,54 +58,61 @@ let mouseY = window.innerHeight / 2;
     var nameBBox = title1.getBBox();
     var nameBBox2 = title2.getBBox();
     var nameElementWidth = nameBBox.width + nameBBox2.width;
-    var endX = (2*startX + nameElementWidth)*1.1;
+    var endX = (startX + nameElementWidth*2)*1.1;
     var endY = startY;
-    var skew = 120;
-
-    var startTime;
 
     function animate(time) {
-      if (!startTime) startTime = time;
-      var elapsed = time - startTime;
-      var t = Math.min(elapsed / nameSpeed, 1);
-      var easedT = easeInOutQuad(t, 1, 1.2);
-      var currentX = lerp(startX, endX, easedT);
-      var currentY = lerp(startY, endY, easedT);
+      var skew = 70 + Math.random() * 100; // Random skew (min value + random * max value)
+      var nameSpeed = 1000 + Math.random() * 3000; // Random speed 
+      var timerName = 5000 + Math.random() * 10000; // Random delay
+      var brightness = 0.8 + Math.random() * 0.3; // Random brightness
 
-      //Update points
-      var points = [
-        { x: currentX, y: currentY },
-        { x: currentX + polygonWidth, y: currentY },
-        { x: currentX + polygonWidth + skew, y: currentY + polygonHeight },
-        { x: currentX + skew, y: currentY + polygonHeight }
-      ];
-      var pointsString = points.map(point => `${point.x},${point.y}`).join(' ');
-
-      rect.setAttribute('points', pointsString);
-      clipRect.setAttribute('points', pointsString);
-
-      if (t < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        // If rectangle has reached end
-        if (currentX >= endX) {
-          // reset after delay
-          setTimeout(function() {
-            rect.setAttribute('x', startX);
-            clipRect.setAttribute('x', startX);
-            startTime = null;
-            requestAnimationFrame(animate);
-          }, timerName); //timer for reset here
+      rect.style.filter = `brightness(${brightness})`;
+      var startTime;
+  
+      function animateStep(time) {
+        if (!startTime) startTime = time;
+        var elapsed = time - startTime;
+        var t = Math.min(elapsed / nameSpeed, 1);
+        var easedT = easeInOutQuad(t, 1, 1.2);
+        var currentX = lerp(startX, endX, easedT);
+        var currentY = lerp(startY, endY, easedT);
+  
+        //Update points
+        var points = [
+          { x: currentX, y: currentY },
+          { x: currentX + polygonWidth, y: currentY },
+          { x: currentX + polygonWidth + skew, y: currentY + polygonHeight },
+          { x: currentX + skew, y: currentY + polygonHeight }
+        ];
+        var pointsString = points.map(point => `${point.x},${point.y}`).join(' ');
+  
+        rect.setAttribute('points', pointsString);
+        clipRect.setAttribute('points', pointsString);
+  
+        if (t < 1) {
+          requestAnimationFrame(animateStep);
         } else {
-          startTime = null;
-          requestAnimationFrame(animate);
+          // If rectangle has reached end
+          if (currentX >= endX) {
+            // reset after delay
+            setTimeout(function() {
+              rect.setAttribute('x', startX);
+              clipRect.setAttribute('x', startX);
+              requestAnimationFrame(animate);
+            }, timerName); // Random timer for reset here
+          } else {
+            requestAnimationFrame(animate);
+          }
         }
       }
+  
+      requestAnimationFrame(animateStep);
     }
-
+  
     requestAnimationFrame(animate);
   }
-
+  
 //Strokes of hair animation following mouse
 function updateElements() {
     stroke.forEach(element => {
@@ -212,6 +223,53 @@ function getTranslateYValue() {
   return matrix.m42; // m42 is translateY in transform matrix
 }
 
+const degree = 60; // Angle from the right of the logo (in degrees)
+const amplitude = 2; // Bounce amplitude in percent of the page height
+const bounceAngle = 10; // Bounce angle in degrees
+
+function getLogoCenter() {
+  const rect = logo.getBoundingClientRect();
+  const centerX = rect.left + (rect.width * 0.4); // 40% of logo width
+  const centerY = rect.top + (rect.height * 0.45); // 45% of logo height
+  return { centerX, centerY };
+}
+
+// Move the texts to be centered on the logo initially
+function moveTexts() {
+  const { centerX, centerY } = getLogoCenter();
+
+  menuElem.forEach((text) => {
+      text.style.left = `${centerX - text.offsetWidth / 2}px`;
+      text.style.top = `${centerY - text.offsetHeight / 2}px`;
+  });
+}
+
+function rotateTexts() {
+  let angle = 0;
+
+  function rotate() {
+      angle += 0.02;
+      const { centerX, centerY } = getLogoCenter();
+      const radius = 200; // Fixed radius for orbit
+      const bounceAmplitude = window.innerHeight * (amplitude / 100); // Bounce amplitude in pixels
+
+      menuElem.forEach((text, index) => {
+          const initialAngle = (index * (2 * Math.PI / menuElem.length)); // Distribute evenly
+          const theta = initialAngle + Math.sin(angle) * (bounceAngle * (Math.PI / 180)); // Add bounce effect
+          const bounce = Math.sin(angle * 5) * bounceAmplitude; // Bounce effect
+          const x = centerX + (radius + bounce) * Math.cos(theta) - text.offsetWidth / 2;
+          const y = centerY + (radius + bounce) * Math.sin(theta) - text.offsetHeight / 2;
+          text.style.left = `${x}px`;
+          text.style.top = `${y}px`;
+          text.style.transform = `rotate(${theta}rad)`;
+      });
+
+      requestAnimationFrame(rotate);
+  }
+
+  requestAnimationFrame(rotate);
+}
+
 //Listeners
 document.addEventListener('mousemove', (event) => {
   mouseX = event.clientX;
@@ -219,6 +277,7 @@ document.addEventListener('mousemove', (event) => {
 });
 window.addEventListener('resize', function() {
   moveRectangle();
+  moveTexts();
 });
 document.querySelector('.interact').addEventListener('mousedown', spinLogo);
 
@@ -226,4 +285,6 @@ document.querySelector('.interact').addEventListener('mousedown', spinLogo);
 updateElements();
 startColorUpdates();
 moveRectangle();
+moveTexts();
+rotateTexts();
 anime();
