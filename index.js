@@ -11,7 +11,17 @@ const nameSpeed = 5000;
 const rotateSpeed=2000;
 const animAmplitude=3;
 
-const textRadius = 400;
+const menuDarken = 0.2; 
+const menuDegree = 60; // Angle from the right of the logo (in degrees)
+const menuBounceAmplitude = 3; // Bounce amplitude in percent of the page height
+const menuBounceAngle = 1; // Bounce angle in degrees
+const menuRadiusPercentage = 75;
+ //const menuMoveDistanceX = 2; //floaty movement
+//const menuMoveDistanceY = 5; //floaty movement
+const menuMoveDistanceX = 0;
+const menuMoveDistanceY = 0;
+const menuMoveSpeed = 0.1; // Factor for lerp
+
 
 let isSpinning = false; // Flag for rotation, do not touch
 let activeBounceElement = null; //Flag for menu bouncing
@@ -32,6 +42,26 @@ function easeInOutQuad(t, acceleration = 2, deceleration = 2) {
       ? Math.pow(2 * t, acceleration) / 2 
       : 1 - Math.pow(-2 * t + 2, deceleration) / 2;
 }
+
+//get the current bounce value ! otherwise when spinning might clip (override of the transform)
+function getTranslateYValue() {
+  const computedStyle = window.getComputedStyle(document.querySelector('.logo'));
+  const matrix = new WebKitCSSMatrix(computedStyle.transform);
+  return matrix.m42; // m42 is translateY in transform matrix
+}
+
+function getLogoCenter() {
+  const rect = logo.getBoundingClientRect();
+  const centerX = rect.left + (rect.width * 0.4); // 40% of logo width
+  const centerY = rect.top + (rect.height * 0.45); // 45% of logo height
+  return { centerX, centerY, width: rect.width, height: rect.height };
+}
+
+// Function to generate random offset
+function getRandomOffset(range) {
+  return (Math.random() - 0.5) * range;
+}
+
 
 //Select all logo components to animate
 const stroke = document.querySelectorAll('.cls-18');
@@ -214,35 +244,9 @@ function spinLogo() {
     requestAnimationFrame(animate);
 }
 
-
-//get the current bounce value ! otherwise when spinning might clip (override of the transform)
-function getTranslateYValue() {
-  const computedStyle = window.getComputedStyle(document.querySelector('.logo'));
-  const matrix = new WebKitCSSMatrix(computedStyle.transform);
-  return matrix.m42; // m42 is translateY in transform matrix
-}
-
-
-const menuDegree = 60; // Angle from the right of the logo (in degrees)
-const menuBounceAmplitude = 3; // Bounce amplitude in percent of the page height
-const menuBounceAngle = 1; // Bounce angle in degrees
-const menuRadius = 400; // Fixed radius for orbit
-//const menuMoveDistanceX = 2; //floaty movement
-//const menuMoveDistanceY = 5; //floaty movement
-const menuMoveDistanceX = 0;
-const menuMoveDistanceY = 0;
-const menuMoveSpeed = 0.1; // Factor for lerp
-
-function getLogoCenter() {
-  const rect = logo.getBoundingClientRect();
-  const centerX = rect.left + (rect.width * 0.4); // 40% of logo width
-  const centerY = rect.top + (rect.height * 0.45); // 45% of logo height
-  return { centerX, centerY };
-}
-
 // Move the texts to be centered on the logo initially
 function moveTexts() {
-  const { centerX, centerY } = getLogoCenter();
+  const { centerX, centerY, width, height } = getLogoCenter();
 
   menuElem.forEach((text) => {
       text.style.left = `${centerX - text.offsetWidth / 2}px`;
@@ -252,51 +256,47 @@ function moveTexts() {
   });
 }
 
-// Function to generate random offset
-function getRandomOffset(range) {
-  return (Math.random() - 0.5) * range;
-}
-
-function lerp(start, end, t) {
-  return start + (end - start) * t;
-}
-
 function rotateTexts() {
   let angle = 0;
 
   function rotate() {
       angle += 0.02;
-      const { centerX, centerY } = getLogoCenter();
+      const { centerX, centerY, width, height } = getLogoCenter();
       const bounceAmplitude = window.innerHeight * (menuBounceAmplitude / 100); // Bounce amplitude in pixels
       const radianDegree = menuDegree * (Math.PI / 180); // Convert degree to radians
+      const menuRadius = (menuRadiusPercentage / 100) * height; // Radius as percentage of logo height
 
       menuElem.forEach((text, index) => {
           const fraction = (index / (menuElem.length - 1)) - 0.5; // Distribute from -0.5 to 0.5
           const initialAngle = fraction * radianDegree; // Calculate initial angle based on degree
-          const bounceFactor = (activeBounceElement === text) ? Math.abs(Math.sin(angle * 5)) : 1;
-          const theta = initialAngle + Math.sin(angle) * (menuBounceAngle * (Math.PI / 180)); // Add bounce effect
-          const bounce = bounceFactor * bounceAmplitude; // Bounce effect
+          const bounceFactor = (activeBounceElement === text) ? Math.abs(Math.sin(angle * 5)) : 1; //If active, bounce
+          const theta = initialAngle + Math.sin(angle) * (menuBounceAngle * (Math.PI / 180)); // Add second bounce effect
+          const bounce = bounceFactor * bounceAmplitude; // Bounce effect sum
 
           // Generate random offsets
-          const randomOffsetX = getRandomOffset(menuMoveDistanceX); // Adjust range as needed
-          const randomOffsetY = getRandomOffset(menuMoveDistanceY); // Adjust range as needed
+          const randomOffsetX = getRandomOffset(menuMoveDistanceX);
+          const randomOffsetY = getRandomOffset(menuMoveDistanceY);
 
-          // Calculate target positions with random offsets
-          const targetX = centerX + (menuRadius + bounce) * Math.cos(theta) - text.offsetWidth / 2 + randomOffsetX;
-          const targetY = centerY + (menuRadius + bounce) * Math.sin(theta) - text.offsetHeight / 2 + randomOffsetY;
+          let targetX, targetY, newX, newY;
+          targetX = centerX + (menuRadius + bounce) * Math.cos(theta) - text.offsetWidth / 2 + randomOffsetX;
+          targetY = centerY + (menuRadius + bounce) * Math.sin(theta) - text.offsetHeight / 2 + randomOffsetY;
 
-          // Lerp to the target positions
           const currentX = parseFloat(text.dataset.currentX);
           const currentY = parseFloat(text.dataset.currentY);
-          const newX = lerp(currentX, targetX, menuMoveSpeed);
-          const newY = lerp(currentY, targetY, menuMoveSpeed);
+          if (!isSpinning) {
+            newX = lerp(currentX, targetX, menuMoveSpeed);
+            newY = lerp(currentY, targetY, menuMoveSpeed);
+          }
+          else {
+            newX = lerp(currentX, currentX, menuMoveSpeed);
+            newY = lerp(currentY, currentY, menuMoveSpeed);
+          }
 
-          // Update element position and dataset
+          // Update element
           text.style.left = `${newX}px`;
           text.style.top = `${newY}px`;
           text.dataset.currentX = newX;
           text.dataset.currentY = newY;
-
           text.style.transform = `rotate(${theta}rad)`;
       });
       requestAnimationFrame(rotate);
@@ -319,11 +319,23 @@ document.querySelector('.interact').addEventListener('mousedown', spinLogo);
 menuElem.forEach((text) => {
   text.addEventListener('mouseenter', () => {
       activeBounceElement = text;
+      text.style.filter = `brightness(${1-menuDarken})`;
+      text.style.textShadow = '0px 0px 1px yellow';
   });
 
   text.addEventListener('mouseleave', () => {
       activeBounceElement = null;
+      text.style.filter = `brightness(${1})`;
+      text.style.textShadow = 'none';
   });
+  text.addEventListener('click', () => {
+    const url = text.dataset.url; //data-url attribute has to be defined
+    if (url.startsWith('#')) { //can manage section (don't forget div ID to a specific part !)
+      window.location.hash = url;
+    } else {
+      window.location.href = url;
+  }
+});
 });
 
 

@@ -14,7 +14,7 @@ body {
 }
 
 .bg-div { /* background blur and black*/
-    position: absolute;
+    position: fixed;
     top: 0;
     left : 0;
     width: 100%;
@@ -25,7 +25,6 @@ body {
     display: flex;   
     align-items: center;
     justify-content: center;
-    gap: 5%; /* Ajoute un espace entre les éléments */
 }
 
 .loader { /* loading div*/
