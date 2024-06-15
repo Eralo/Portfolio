@@ -2,54 +2,108 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 
 html, body {
-    height: 100%;
     margin: 0;
-}
-
-body {
-    background-color: #010204;
-    color: #EFEFD0;
-    font-family: 'Roboto', sans-serif;
-    overflow: hidden;
-}
-
-.bg-div { /* background blur and black*/
-    position: fixed;
-    top: 0;
-    left : 0;
-    width: 100%;
+    padding: 0;
     height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+    font-family: 'Roboto', sans-serif;
+    color: #EFEFD0;
+    background-color: #010204;
+    scroll-behavior: smooth;
+}
+body {
+    min-height: 100%;
+}
+
+canvas {
+    position: fixed;
+    left:0px;
+    height:100vh;
+    width:100%;
+  }
+  
+.bg-div { 
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 300vh;
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(3px);
     z-index: 10;
     display: flex;   
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    scroll-behavior: smooth;
 }
+
+.section {
+    flex: 1;
+    height: 100vh;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+#home  {
+    display: flex;
+    flex-direction: line;
+}
+
+#infos {
+    bottom: 100vh; /* Ensure section2 is taller than the viewport */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: linear-gradient(to bottom, #00000000, #000000e6 80%);
+  }
+
+  #curriculum {
+    bottom: 200vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: linear-gradient(to bottom, #000000e6, #000000 80%);
+  }
 
 .loader { /* loading div*/
     position: absolute;
-    top: 0;
+    top: 5;
     left : 0;
-    width: 100%;
-    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto; 
+    height: auto; 
     background-color: black;
     display: flex;
     color: gold;
-    z-index: 1000;
+    z-index: 20;
     display: true;
 }
 
-.logo {  /* animated logo */
-    position: relative; 
-    top: 0%;
-    left:0%;
-    width: 70%;
-    height: 70%;
+.logo-container {
+    flex: 2; /* Prend le premier tiers de l'espace */
+    align-items: center;
+    justify-content: left;
+    position: relative;
+}
+
+.logo { 
+    width: auto; /* Ajuste la largeur du logo */
+    height: 80%; /* Maintient les proportions */
+    max-width: 95%; /* Maintient les proportions */
+    position: relative;
+    margin-left: 20%;
+    margin-top: 10%;
+    transform: translateX(-50%); /* Centre le logo horizontalement */
     background-color: transparent;
     z-index: 30;
-    justify-content: center;
+    overflow: visible;
 }
+
 .interact {
     fill: transparent;
     cursor: pointer;
@@ -63,14 +117,16 @@ body {
 }
 
 .name-title {
-    position: relative; 
-    top: -5%;
-    right: 10%;
-    width: 25%; 
+    flex: 1; /* Prend le dernier tiers de l'espace */
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    width: auto; 
     height: auto;
     background-color: transparent; 
     z-index: 25;
     fill: white;
+    padding-right: 10%;
 }
 
 .name-title #movingRect {
@@ -90,8 +146,11 @@ body {
     transform-origin: center center;
     white-space: nowrap;
     z-index: 50;
-    height: 10%;
     font-family: "Montserrat", sans-serif;
     font-size: 150%;
     cursor: pointer;
+}
+
+.empty-space {
+    flex: 1; /* Prend le tiers intermédiaire de l'espace */
 }

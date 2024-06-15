@@ -33,8 +33,6 @@ let currentCubePosition = { x: 0, y: 0 };
 let targetLightPosition = { x: 0, y: 0 };
 let currentLightPosition = { x: 10, y: 10 };
 
-console.log("2");
-
 const loadingScreen = document.querySelector('.loading');
 //loading management
 const manager = new THREE.LoadingManager();
