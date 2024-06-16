@@ -1,0 +1,17 @@
+#infos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#intro {
+    padding: 10%;
+}
+
+#animated-thread {
+    cursor: grab;
+}
+
+#animated-thread:active {
+    cursor: grabbing;
+}

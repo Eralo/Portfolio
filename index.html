@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Home</title>
   <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="infos.css">
 
   <script type="importmap">
     {
@@ -187,6 +188,7 @@
         <div class="menu"> ~ ~ ~ </div>
         <div class="menu" data-url="#infos"> A propos </div>
         <div class="menu" data-url="#curriculum"> Curriculum </div>
+        <div class="menu" data-url="./old.html"> Portfolio </div>
         <div class="menu" data-url="./old.html"> Projets </div>
         <div class="menu" data-url="./old.html"> Blog </div>
         <div class="menu" data-url="./old.html"> Contact </div>
@@ -218,27 +220,42 @@
 
       </svg>
 
-    </div>  
+    </div>
     <div class="section" id="infos">
-      
-      <img src="logo.png" alt="logo" height="150">
-      Lorem ipsum dolor sit amet consectetur adipisicing elit. 
-      Consequuntur itaque dicta vitae corporis iure facere esse 
-      quasi saepe quis, non aliquam facilis asperiores labore at 
-      odio quae laboriosam voluptatem sequi?
-    </div>    
+      <div id="intro">
+        <img src="logo.png" alt="logo" height="150">
+        <em>
+          Lorem ipsum dolor sit amet consectetur adipisicing elit.
+          Consequuntur itaque dicta vitae corporis iure facere esse
+          quasi saepe quis, non aliquam facilis asperiores labore at
+          odio quae laboriosam voluptatem sequi?
+        </em>
+      </div>
+      <svg id="animated-thread" viewBox="0 0 100 10">
+        <defs>
+          <linearGradient id="thread-grad">
+            <stop offset="3%" stop-color="#5dd9f200" />
+            <stop offset="10%" stop-color="#5ddaf2" />
+            <stop offset="90%" stop-color="#5ddaf2" />
+            <stop offset="97%" stop-color="#5dd9f200" />
+          </linearGradient>
+        </defs>
+        <polygon id="thread" fill="url(#thread-grad)" points="0,4.8 0,5.2 100,5.2 100,4.8 0,4.8"/>
+    </svg>
+    </div>
     <div class="section" id="curriculum">
-      
+
       <img src="logo.png" alt="logo" height="150">
-      Lorem ipsum dolor sit amet consectetur adipisicing elit. 
-      Consequuntur itaque dicta vitae corporis iure facere esse 
-      quasi saepe quis, non aliquam facilis asperiores labore at 
+      Lorem ipsum dolor sit amet consectetur adipisicing elit.
+      Consequuntur itaque dicta vitae corporis iure facere esse
+      quasi saepe quis, non aliquam facilis asperiores labore at
       odio quae laboriosam voluptatem sequi?
     </div>
   </div>
 </body>
 
 <script src="title.js"></script>
+<script src="thread.js"></script>
 <!--<script src="nav_logo.js"></script>-->
 
 </html>
