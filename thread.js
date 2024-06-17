@@ -1,88 +1,147 @@
+
+
 document.addEventListener("DOMContentLoaded", () => {
+    const svgCanvas = document.getElementById("animated-thread");
     const polygon = document.getElementById("thread");
-    const offset = 0.4; // Adjust this value to change the offset between upper and lower waves
-    const speed = 0.002; // Speed of the animation
-    const amplitudeBase = 1;
-    const frequencyBase = 0.1;
-    const waveCount = 5; // Number of waves
-    const turbulenceDecay = 0.98; // Decay factor for the turbulence effect
-    const turbulence = Array(101).fill(0); // Initialize turbulence array
-    const maxDistance = 10; // Maximum distance from the mouse to apply turbulence
-    const turbulenceAmplitude = 0.5; // Initial amplitude of the turbulence effect
-  
-    let startTime = null;
-    let mouseX = -1;
-    let mouseY = -1;
-  
-    // Generate initial waves with fixed amplitude and frequency but random initial phase
-    const waves = generateWaves();
-  
-    function generateWaves() {
-      return Array.from({ length: waveCount }, () => ({
-        amplitude: amplitudeBase + (Math.random() * 0.4 - 0.2), // Vary amplitude slightly
-        frequency: frequencyBase + (Math.random() * 0.02 - 0.01), // Vary frequency slightly
-        phase: Math.random() * Math.PI * 2 // Random initial phase
-      }));
-    }
-  
-    function animate(time) {
-      if (!startTime) startTime = time;
-      const elapsed = time - startTime;
-  
-      // Apply decay to the turbulence array
-      for (let i = 0; i < turbulence.length; i++) {
-        turbulence[i] *= turbulenceDecay;
-      }
-  
-      const points = generateWavePoints(elapsed, offset, speed, waves);
-      polygon.setAttribute("points", points);
-  
-      requestAnimationFrame(animate);
-    }
-  
-    function generateWavePoints(elapsed, offset, speed, waves) {
-      const upperPoints = [];
-      const lowerPoints = [];
-      for (let i = 0; i <= 100; i++) {
-        let upperY = 5;
-        for (const wave of waves) {
-          upperY += Math.sin((i * wave.frequency) + (elapsed * speed) + wave.phase) * wave.amplitude;
+    let isDragging = false;
+    let points = [];
+    let thickness = 0.2; // Contrôle de l'épaisseur du thread
+    const tension = 0.1; // Contrôle la fluidité du thread
+    const lerpFactor = 0.2; // Facteur d'interpolation linéaire
+    let localLerpFactor = 0.01; // Facteur d'interpolation pour la déformation locale
+
+    // Paramètres pour les vagues
+    let waveAmplitude = 0.05;
+    let waveFrequency = 0.03;
+    let wavePhase = 0;
+
+    let mouseX = null;
+    let mouseY = null;
+
+    const setThickness = (newThickness) => {
+        thickness = newThickness;
+        generatePoints();
+    };
+
+    const setTension = (newTension) => {
+        tension = newTension;
+    };
+
+    const setLerpFactor = (newLerpFactor) => {
+        lerpFactor = newLerpFactor;
+    };
+
+    const setLocalLerpFactor = (newLocalLerpFactor) => {
+        localLerpFactor = newLocalLerpFactor;
+    };
+
+    const generatePoints = () => {
+        const pointCount = 100;
+        const width = 100;
+        points = [];
+        for (let i = 0; i <= pointCount; i++) {
+            const x = (width / pointCount) * i;
+            const y = 5; // Départ au milieu de la viewBox
+            points.push({ x, y, originalY: y });
         }
-  
-        // Apply the turbulence effect
-        upperY += turbulence[i];
-  
-        const lowerY = upperY + offset;
-        upperPoints.push(`${i},${upperY}`);
-        lowerPoints.push(`${i},${lowerY}`);
-      }
-  
-      // Combine the points to create a continuous shape
-      return upperPoints.concat(lowerPoints.reverse()).join(" ");
-    }
-  
-    // Start the animation
-    requestAnimationFrame(animate);
-  
-    // Mouse move event to adjust the waves based on mouse position
-    polygon.addEventListener("mousemove", (event) => {
-      const rect = polygon.getBoundingClientRect();
-      mouseX = ((event.clientX - rect.left) / rect.width) * 100; // Scale mouseX to viewbox coordinates
-      mouseY = ((event.clientY - rect.top) / rect.height) * 10; // Scale mouseY to viewbox coordinates
-  
-      // Apply a local turbulence effect
-      for (let i = 0; i < turbulence.length; i++) {
-        const distance = Math.abs(mouseX - i);
-        if (distance < maxDistance) {
-          turbulence[i] += (maxDistance - distance) / maxDistance * turbulenceAmplitude; // Adjust the multiplier as needed
+        updatePolygon();
+    };
+
+    const updatePolygon = () => {
+        let pointStr = points.map(p => `${p.x},${p.y - thickness}`).join(" ");
+        pointStr += " " + points.slice().reverse().map(p => `${p.x},${p.y + thickness}`).join(" ");
+        polygon.setAttribute("points", pointStr);
+    };
+
+    const lerp = (a, b, t) => (1 - t) * a + t * b;
+
+    const startDrag = (e) => {
+        isDragging = true;
+        drag(e); // Pour capturer immédiatement le déplacement
+    };
+
+    const drag = (e) => {
+        if (!isDragging) return;
+        const rect = svgCanvas.getBoundingClientRect();
+        mouseX = (e.clientX - rect.left) / rect.width * 100;
+        mouseY = (e.clientY - rect.top) / rect.height * 10;
+        points.forEach((point, index) => {
+            if (Math.abs(point.x - mouseX) < 5) {
+                const offsetY = mouseY - point.y;
+                point.y = lerp(point.y, mouseY, lerpFactor);
+                if (index === 0) {
+                    points[points.length - 1].y = lerp(points[points.length - 1].y, points[points.length - 1].y + offsetY, lerpFactor);
+                } else if (index === points.length - 1) {
+                    points[0].y = lerp(points[0].y, points[0].y + offsetY, lerpFactor);
+                }
+            }
+        });
+        updatePolygon();
+    };
+
+    const endDrag = () => {
+        isDragging = false;
+    };
+
+    const handleMouseMove = (e) => {
+        const rect = svgCanvas.getBoundingClientRect();
+        mouseX = (e.clientX - rect.left) / rect.width * 100;
+        mouseY = (e.clientY - rect.top) / rect.height * 10;
+    };
+
+    const handleMouseLeave = () => {
+        mouseX = null;
+        mouseY = null;
+        points.forEach(point => {
+            point.y = lerp(point.y, point.originalY, localLerpFactor); // Réinitialiser la position des points
+        });
+        isDragging=false;
+        updatePolygon();
+    };
+
+    const animate = () => {
+        if (!isDragging) {
+            for (let i = 1; i < points.length - 1; i++) {
+                const prev = points[i - 1];
+                const curr = points[i];
+                const next = points[i + 1];
+                
+                const dy1 = prev.y - curr.y;
+                const dy2 = next.y - curr.y;
+                curr.y += (dy1 + dy2) * tension * 0.5;
+
+                // Restoring original position slightly for a more natural look
+                curr.y += (curr.originalY - curr.y) * tension * 0.1;
+            }
         }
-      }
-    });
-  
-    // Mouse leave event to reset the mouse position
-    polygon.addEventListener("mouseleave", () => {
-      mouseX = -1;
-      mouseY = -1;
-    });
-  });
-  
+
+        // Ajout de l'animation de la vague
+        wavePhase += waveFrequency;
+        points.forEach((point, index) => {
+            point.y += Math.sin(point.x * waveFrequency + wavePhase) * waveAmplitude;
+
+            // Déformation locale si la souris est proche
+            if (mouseX !== null && mouseY !== null && Math.abs(point.x - mouseX) < 5) {
+                point.y = lerp(point.y, mouseY, localLerpFactor); // Lerp pour une déformation douce
+            }
+        });
+
+        updatePolygon();
+        requestAnimationFrame(animate);
+    };
+
+    svgCanvas.addEventListener("mousedown", startDrag);
+    svgCanvas.addEventListener("mousemove", handleMouseMove);
+    svgCanvas.addEventListener("mousemove", drag);
+    svgCanvas.addEventListener("mouseup", endDrag);
+    svgCanvas.addEventListener("mouseleave", handleMouseLeave);
+
+    generatePoints();
+    animate();
+
+    // Exposer les fonctions de configuration pour permettre un changement des paramètres
+    window.setThickness = setThickness;
+    window.setTension = setTension;
+    window.setLerpFactor = setLerpFactor;
+    window.setLocalLerpFactor = setLocalLerpFactor;
+});

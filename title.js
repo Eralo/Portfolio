@@ -344,7 +344,10 @@ document.addEventListener('DOMContentLoaded', function () {
       let url = text.dataset.url; // data-url attribute has to be defined
       if (url.startsWith('#')) { // can manage section (don't forget div ID to a specific part!)
         const section = document.getElementById(url.substring(1));
-        section.scrollIntoView({ behavior: 'smooth' });
+        section.scrollIntoView({             
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'center'});
 
         // Update current section index
         currentSectionIndex = Array.from(sections).indexOf(section);
@@ -383,7 +386,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const section = document.getElementById(sectionId);
     if (section) {
       currentSectionIndex = Array.from(sections).indexOf(section);
-      section.scrollIntoView({ behavior: 'smooth' });
+      section.scrollIntoView({             
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'center'});
       updateTitleAndURL(currentSectionIndex);
     }
   });
@@ -394,7 +400,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const section = document.getElementById(sectionId);
     if (section) {
       currentSectionIndex = Array.from(sections).indexOf(section);
-      section.scrollIntoView({ behavior: 'smooth' });
+      section.scrollIntoView({             
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'center'});
     }
   }
 
