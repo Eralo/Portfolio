@@ -12,9 +12,9 @@ const rotateSpeed = 2000;
 const animAmplitude = 3;
 
 const menuDarken = 0.2;
-const menuDegree = 60; // Angle from the right of the logo (in degrees)
-const menuBounceAmplitude = 3; // Bounce amplitude in percent of the page height
-const menuBounceAngle = 1; // Bounce angle in degrees
+const menuDegree = 66; // Angle from the right of the logo (in degrees)
+const menuBounceAmplitude = 2; // Bounce amplitude in percent of the page height
+const menuBounceAngle = .5; // Bounce angle in degrees
 const menuRadiusPercentage = 70;
 //const menuMoveDistanceX = 2; //floaty movement
 //const menuMoveDistanceY = 5; //floaty movement

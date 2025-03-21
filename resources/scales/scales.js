@@ -1,4 +1,4 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.135.0/build/three.module.js';
+import * as THREE from 'three';
 import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.135.0/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.135.0/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'https://cdn.jsdelivr.net/npm/three@0.135.0/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -20,10 +20,10 @@ const textureRepeatY = 2; // Number of texture repetitions along Y axis
 
 const spotHeight = .2; //yellow spotlight height
 
-const cubemovementX = 0.1;
-const cubemovementY = 0.05;
+const cubemovementX = 0.05;
+const cubemovementY = 0.025;
 
-const backLightPos = { x: -10, y: -3, z: 7 }
+const backLightPos = { x: -10, y: -3, z: 10 }
 const backLight2Pos = { x: 2, y: 2, z: 3 }
 
 
@@ -33,30 +33,15 @@ let currentCubePosition = { x: 0, y: 0 };
 let targetLightPosition = { x: 0, y: 0 };
 let currentLightPosition = { x: 10, y: 10 };
 
-const loadingScreen = document.querySelector('.loading');
 //loading management
 const manager = new THREE.LoadingManager();
-manager.onStart = function (url, itemsLoaded, itemsTotal) {
-  console.log('Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
-};
-manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
-	console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
-};
-manager.onLoad = function () {
-	console.log( 'Loading complete!');
-    loadingScreen.style.display = 'none';
-};
-manager.onError = function ( url ) {
-	console.log( 'There was an error loading ' + url );
-};
-
 
 // Load textures
 const textureLoader = new THREE.TextureLoader(manager);
-const albedo = textureLoader.load('scales/albedo.png');
-const roughness = textureLoader.load('scales/roughness.png');
-const normal = textureLoader.load('scales/normal.png');
-const displacement = textureLoader.load('scales/displacement.png');
+const albedo = textureLoader.load('resources/scales/albedo.png');
+const roughness = textureLoader.load('resources/scales/roughness.png');
+const normal = textureLoader.load('resources/scales/normal.png');
+const displacement = textureLoader.load('resources/scales/displacement.png');
 
 // Scale material
 const material = new THREE.MeshStandardMaterial({
@@ -68,7 +53,7 @@ const material = new THREE.MeshStandardMaterial({
 	metalness: .3,
 });
 
-// texture repeat and wrapping (is responsive !)
+// texture repeat and wrapping (responsiveness !)
 albedo.wrapS = THREE.RepeatWrapping;
 albedo.wrapT = THREE.RepeatWrapping;
 roughness.wrapS = THREE.RepeatWrapping;
@@ -83,8 +68,8 @@ roughness.repeat.set(textureRepeatX, textureRepeatY);
 normal.repeat.set(textureRepeatX, textureRepeatY);
 displacement.repeat.set(textureRepeatX, textureRepeatY);
 
-function init() {
 
+function init() {
 	scene = new THREE.Scene();
 	// Camera setup
 	camera = new THREE.PerspectiveCamera(
@@ -94,7 +79,6 @@ function init() {
 		1000
 	);
 	camera.position.z = 2;
-
 
 	// Renderer setup
 	renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -116,7 +100,7 @@ function init() {
 		composer.addPass(renderScene);
 	//bloom (if pixel luminosity is higher than given value, saturates and glow)
 	const bloomPass = 
-		new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.7, 0.1);
+		new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.95, 0.1);
 		composer.addPass(bloomPass);
 	//tweaks brightness and constrast
 	const brightnessContrastPass = new ShaderPass(BrightnessContrastShader);
@@ -144,14 +128,14 @@ function init() {
 	//Lights setup
 	backLight = new THREE.SpotLight(0x3a6ca7, 1);
 	backLight.position.set(backLightPos.x, backLightPos.y, backLightPos.z);	
-	backLight.angle = 150 * (Math.PI / 180);
+	backLight.angle = 20 * (Math.PI / 180);
 	backLight.penumbra = 0.1;
 	backLight.decay = 10; 
 	backLight.distance = 100;
 	scene.add(backLight);
 	backLight.target = cube;
 
-	backLight2 = new THREE.PointLight(0x3a6ca7, 2);
+	backLight2 = new THREE.PointLight(0x3a6ca7, 1.5);
 	backLight2.position.set(backLight2Pos.x, backLight2Pos.y, backLight2Pos.z);
 	scene.add(backLight2);
 	backLight2.target = cube;
@@ -176,20 +160,25 @@ function init() {
 }
 
 function updateSize() {
-	const scaleX = (window.innerWidth / 500) * textureRepeatX;
-	const scaleY = (window.innerHeight / 500) * textureRepeatY;
+  const dist = camera.position.z - cube.position.z;
+  //Convert to radians
+  const vFOV = (camera.fov * Math.PI) / 180;
+  //visible height at "dist" distance
+  const visibleHeight = 2 * Math.tan(vFOV / 2) * dist;
+  //visible width according to camera aspect
+  const visibleWidth = visibleHeight * camera.aspect;
 
-	// Update cube size based on window size    
-	cube.scale.set(scaleX, scaleY, 1);
+  //Scale factor wanted (1 = base screen size)
+  const scaleFactor = 1.2;
 
-	// Adjust texture repeat based on new size
-	albedo.repeat.set(scaleX, scaleY);
-	roughness.repeat.set(scaleX, scaleY);
-	normal.repeat.set(scaleX, scaleY);
-	displacement.repeat.set(scaleX, scaleY);
+  //Apply scale to cube
+  cube.scale.set(visibleWidth * scaleFactor, visibleHeight * scaleFactor, 1);
 
-	backLight.position.set(window.innerWidth/500 + backLightPos.x, window.innerHeight/500 + backLightPos.y, backLightPos.z);	
-	backLight2.position.set(window.innerWidth/500 + backLight2Pos.x, window.innerHeight/500 + backLight2Pos.y, backLight2Pos.z);	
+  //Repeat textures : 
+  albedo.repeat.set(visibleWidth * scaleFactor, visibleHeight * scaleFactor);
+  roughness.repeat.set(visibleWidth * scaleFactor, visibleHeight * scaleFactor);
+  normal.repeat.set(visibleWidth * scaleFactor, visibleHeight * scaleFactor);
+  displacement.repeat.set(visibleWidth * scaleFactor, visibleHeight * scaleFactor);	
 }
 
 function onWindowResize() {
@@ -197,7 +186,7 @@ function onWindowResize() {
 	camera.updateProjectionMatrix();
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	composer.setSize(window.innerWidth, window.innerHeight);
-	updateSize();  // Update elements size on window resize
+	updateSize();  // Update cube size on resize
 }
 
 function onMouseMove(event) {
