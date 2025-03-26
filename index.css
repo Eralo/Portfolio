@@ -34,7 +34,7 @@ canvas { /* Three.JS scene*/
     width: 100vw;
     justify-content: center;
     align-items: center;
-}
+}   
 
 
 /* ------------------------------------------------------------- */
@@ -91,9 +91,103 @@ canvas { /* Three.JS scene*/
     background-image: linear-gradient(to bottom, #00000000, #000000e6 80%);
 }
 
-#curriculum {
+    .project-card-wrapper {
+        display : flex;
+        flex-wrap: wrap;
+        perspective: 2000px;
+
+    }
+
+        .project-card{
+            position: relative;
+            display: flex;
+            flex-direction: line;
+            justify-content: left;
+            vertical-align: top;
+            height: 10rem;
+            width: 30rem;
+            margin: 2rem;
+            padding: 1rem;
+            border: .2rem rgb(88, 79, 0) solid;
+            border-radius: 20px;
+            overflow: visible;
+            transform-style: preserve-3d;
+
+
+
+            transition: transform 0.4s, box-shadow 0.4s ;
+        }
+
+        .project-card:hover {
+            /*transform: scale(1.025); - Managed by JS*/
+            box-shadow: 0 0 100px -30px #f9e49e9e;  
+        }
+            
+        .project-card:hover .project-card-bg-gif {
+            opacity: 1;
+        }
+            .project-card-logo {
+                height: 10rem;
+                border-radius: 10px;
+
+                position: relative;
+                transform-style: preserve-3d;
+                transition: transform 0.3s ease;
+                will-change: transform;
+
+                transform: translateZ(20px);
+            }
+
+            .project-card-desc {
+                margin-left: 2rem;
+
+                position: relative;
+                transform-style: preserve-3d;
+                transition: transform 0.3s ease;
+                will-change: transform;
+                text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
+
+                transform: translateZ(10px);
+            }
+
+
+            .project-card-bg-gif {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                object-fit: cover;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.4s ease;
+
+                filter: blur(4px);
+            }
+
+/* ------------------------------------------------------------- */
+
+#projets {
 display: flex;
 justify-content: center;
 align-items: center;
 background-image: linear-gradient(to bottom, #000000e6, #000000 80%);
 }
+
+
+
+
+
+
+/* ------------------------------------------------------------- */
+
+@keyframes animate-border-gradient {
+    0% {
+      transform: rotate(0deg);
+      transform-origin: bottom;
+    }
+    100% {
+      transform: rotate(360deg) ;
+      transform-origin: bottom;
+    }
+  }
