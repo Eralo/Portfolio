@@ -18,6 +18,11 @@ canvas {
     width: 100vw;
   }
   
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
 .mc-div {
     position: relative;
     z-index: 10;
@@ -118,16 +123,13 @@ canvas {
         }
         
         .info-logo {
-            border-radius: 5rem;
-            min-height: 10vh;
-            max-height: 30vh;
-            min-width: 10vw;
-            max-width: 40vw;
+            height: min(60vh, 80vw); /* le carré le plus grand possible sans dépasser */
+            width: auto;             /* s'adapte pour rester carré */
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 5vw;
             margin: 2vh 2vw;
             transform: translateX(-300px);
-            object-fit:cover;    
-            justify-content: center;
-            align-items: center;
         }
         .info-separator {
             width: 10vw;
@@ -146,6 +148,7 @@ canvas {
             text-align: center;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            font-style: italic;
         }
         
         /*visible state*/
@@ -220,7 +223,7 @@ min-height: 100vh;
         max-height: 80vh;
         width: 30rem;
         max-width: 80vw;
-        margin: 2rem;
+        margin: 3rem;
         padding: 1rem;
         border: .2rem rgb(88, 79, 0) solid;
         border-radius: 20px;
@@ -261,6 +264,8 @@ min-height: 100vh;
             text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
 
             transform: translateZ(10px);
+
+            font-style: italic;
         }
 
 
