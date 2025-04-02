@@ -84,7 +84,7 @@ a {
         position: absolute;
         white-space: nowrap;
         font-family: "Montserrat", sans-serif;
-        font-size: 150%;
+        font-size: 1.5rem;
         cursor: pointer;
     }
 
@@ -209,7 +209,7 @@ min-height: 100vh;
     display : flex;
     flex-wrap: wrap;
     perspective: 2000px;
-
+    justify-content: center;
 }
 
     .project-card{
