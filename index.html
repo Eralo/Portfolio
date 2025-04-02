@@ -18,6 +18,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flubber/0.3.1/flubber.min.js"></script>
   <script type="module" src="resources/scales/scales.js"></script>
+  <script src="./lang/language.js"></script>
 </head>
 
 <body>
@@ -205,11 +206,11 @@
       </div>
       <div class="orbitMenu">
         <div class="menu"> ~ ~ ~ </div>
-        <div class="menu" data-url="#infos"> A propos </div>
-        <div class="menu" data-url="#projets"> Projets </div>
-        <div class="menu" data-url="./wiki/index.html"> Wiki Tech </div>
-        <div class="menu" data-url="./blog.html"> Blog </div>
-        <div class="menu" data-url="./contact.html"> Contact </div>
+        <div class="menu" data-url="#infos" data-i18n="home.menu.about" > </div>
+        <div class="menu" data-url="#projets" data-i18n="home.menu.projects">  </div>
+        <div class="menu" data-url="./wiki/index.html" data-i18n="home.menu.wiki"> </div>
+        <div class="menu" data-url="./blog.html" data-i18n="home.menu.blog"> </div>
+        <div class="menu" data-url="./contact.html" data-i18n="home.menu.contact"> </div>
         <div class="menu"> ~ ~ ~ </div>
       </div>
     </div>
@@ -218,11 +219,7 @@
 
         <img src="resources/profile_picture.jpg" class="info-logo noselect" draggable="false" alt="logo" height="150">
         <p class="info-separator"> / </p>
-        <p class="info-desc noselect" draggable="false">
-          Je suis actuellement alternant en ingénierie informatique, avec un fort intérêt pour les technologies 3D.
-          Curieux et touche-à-tout, j’aime explorer différents domaines techniques tout en restant soigneux.
-          Ce portfolio sert à présenter des réalisations concrètes, ainsi que mon moi numérique.
-        </p>
+        <p class="info-desc noselect" data-i18n="infos.desc" draggable="false"></p>
       </div>
       <div class="socials-container">
         <a href="https://discord.com/users/378222638994161668">
@@ -244,10 +241,7 @@
           <div class="project-card">
             <img src="resources/tetriCS.ico" alt="project Icon" class="project-card-logo">
             <img class="project-card-bg-gif" src="resources/TetriCS.gif"  alt="" />
-            <p class="project-card-desc">
-              TetriCS est un projet de réalisation d'un jeu Tetris 
-              complet sur C# et affiché avec WPF.
-            </p>
+            <p class="project-card-desc" data-i18n="project.tetrics"></p>
           </div>
         </a>
 
@@ -255,10 +249,7 @@
           <div class="project-card">
             <img src="resources/logo.png" alt="project Icon" class="project-card-logo">
             <img class="project-card-bg-gif" src="resources/test.gif" alt="" />
-            <p class="project-card-desc">
-              By The Book est un projet de "tactical dungeon crawler" 
-              en vue assymétrique réalisé sous Unity.
-            </p>
+            <p class="project-card-desc" data-i18n="project.btb"></p>
           </div>
         </a>
 
@@ -266,10 +257,7 @@
           <div class="project-card">
             <img src="resources/logo.png" alt="project Icon" class="project-card-logo">
             <img class="project-card-bg-gif" src="resources/test.gif" alt="" />
-            <p class="project-card-desc">
-                CESI Playground est le projet principal de l'association
-                scolaire Lion Games Studio, en VR sous Unity.
-            </p>
+            <p class="project-card-desc" data-i18n="project.lions"></p>
           </div>
         </a>
 
@@ -277,10 +265,7 @@
           <div class="project-card">
             <img src="resources/logo.png" alt="project Icon" class="project-card-logo">
             <img class="project-card-bg-gif" src="resources/test.gif" alt="" />
-            <p class="project-card-desc">
-              EasySave est un logiciel avancé d'archivage et sauvegarde 
-              de données en C# .NET
-            </p>
+            <p class="project-card-desc" data-i18n="project.easysave"></p>
           </div>
         </a>
 
@@ -288,10 +273,7 @@
           <div class="project-card">
             <img src="resources/logo.png" alt="project Icon" class="project-card-logo">
             <img class="project-card-bg-gif" src="resources/test.gif" alt="" />
-            <p class="project-card-desc">
-              Webproject est un site web de postulation d'offres de stage
-              et de gestion des offres des étudiants.
-            </p>
+            <p class="project-card-desc" data-i18n="project.webproject"></p>
           </div>
         </a>
 
@@ -299,10 +281,7 @@
           <div class="project-card">
             <img src="resources/logo.png" alt="project Icon" class="project-card-logo">
             <img class="project-card-bg-gif" src="resources/test.gif" alt="" />
-            <p class="project-card-desc">
-                Projet d'ERP en C++ et WinForms avec gestion 
-                d'utilisateurs, de stock et de commandes.
-            </p>
+            <p class="project-card-desc" data-i18n="project.erp"></p>
           </div>
         </a>
       </div>

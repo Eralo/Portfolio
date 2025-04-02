@@ -1,0 +1,15 @@
+{
+    "home.menu.about": "About",
+    "home.menu.projects": "Projects",
+    "home.menu.wiki": "Tech Wiki",
+    "home.menu.blog": "Blog",
+    "home.menu.contact": "Contact",
+    "infos.desc": "I am currently an apprenticeship student in IT engineering, with a strong interest in 3D technologies. Curious and versatile, I enjoy exploring various technical fields while staying detail-oriented. This portfolio aims to showcases some concrete achievements, and my numeric identity aswell.",
+    "project.tetrics": "TetriCS is a complete Tetris game project developed in C# and displayed using WPF.",
+    "project.btb": "By The Book is a tactical dungeon crawler project with an isometric view, developed in Unity.",
+    "project.lions": "CESI Playground is the main project of the Lion Games Studio school association, developed for VR usage with Unity.",
+    "project.easysave": "EasySave is an advanced backup and archiving software made with C# .NET.",
+    "project.webproject": "WebProject is a website for internship applications and managing student applications.",
+    "project.erp": "An ERP project with user, inventory, and order management, made with C++ and WinForms."
+}
+  
